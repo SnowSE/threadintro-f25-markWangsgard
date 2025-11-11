@@ -78,7 +78,7 @@ class LotteryPeriod
         WinningTicket = new Ticket(numbers, powerBall);
     }
 
-    private int CountTicketsOfValue(int value)
+    public int CountTicketsOfValue(int value)
     {
         return SoldTickets.Where(t => t.GetTicketWinnings(this) == value).Count();
     }
@@ -104,10 +104,17 @@ class Program
     public static void SellTicketsWithNewVendor(LotteryPeriod period, int quantity)
     {
         LotteryVendor vendor = new();
-            lock (x)
-            {
-                vendor.SellTickets(period, 1000000);
-            }
+        lock (x)
+        {
+            vendor.SellTickets(period, 1000000);
+        }
+        Console.WriteLine("SOLD 1Million Tickets!");
+    }
+
+    public static void PrintStatistic(LotteryPeriod period, int value)
+    {
+        int numbOfTickets = period.CountTicketsOfValue(value);
+        Console.WriteLine($"# of ${(value == 2000000 ? "jackpot" : value)} Winners: {numbOfTickets}");
     }
 
     static void Main(string[] args)
@@ -117,27 +124,30 @@ class Program
         LotteryVendor vendor1 = new LotteryVendor();
         LotteryVendor vendor2 = new LotteryVendor();
         LotteryVendor vendor3 = new LotteryVendor();
-        Console.WriteLine("SOLD 1Million Tickets!");
 
-        var thread1 = new Thread(() => SellTicketsWithNewVendor(period, 1000000));
-        var thread2 = new Thread(() => SellTicketsWithNewVendor(period, 1000000));
-        var thread3 = new Thread(() => SellTicketsWithNewVendor(period, 1000000));
+        Thread[] threads1 =
+            {
+                new Thread(() => SellTicketsWithNewVendor(period, 1000000)),
+                new Thread(() => SellTicketsWithNewVendor(period, 1000000)),
+                new Thread(() => SellTicketsWithNewVendor(period, 1000000))
+            };
 
-        thread1.Start();
-        thread2.Start();
-        thread3.Start();
+        Parallel.ForEach(threads1, t => t.Start());
+        Parallel.ForEach(threads1, t => t.Join());
 
-        thread1.Join();
-        thread2.Join();
-        thread3.Join();
-
-        Console.WriteLine($"# of $0 Winners: {period.TotalNumbOfZeroDollarTickets}");
-        Console.WriteLine($"# of $4 Winners: {period.TotalNumbOfFourDollarTickets}");
-        Console.WriteLine($"# of $7 Winners: {period.TotalNumbOfSevenDollarTickets}");
-        Console.WriteLine($"# of $100 Winners: {period.TotalNumbOfHundredDollarTickets}");
-        Console.WriteLine($"# of $50,000 Winners: {period.TotalNumbOfFiftyKTickets}");
-        Console.WriteLine($"# of $1,000,000 Winners: {period.TotalNumbOfOneMilTickets}");
-        Console.WriteLine($"# of Jackpot Winners: {period.TotalNumbOfJackpotTickets}");
+        Thread[] threads2 =
+            {
+                new Thread(() => PrintStatistic(period, 0)),
+                new Thread(() => PrintStatistic(period, 7)),
+                new Thread(() => PrintStatistic(period, 4)),
+                new Thread(() => PrintStatistic(period, 100)),
+                new Thread(() => PrintStatistic(period, 50000)),
+                new Thread(() => PrintStatistic(period, 1000000)),
+                new Thread(() => PrintStatistic(period, 2000000))
+            };
+        Parallel.ForEach(threads2, t => t.Start());
+        Parallel.ForEach(threads2, t => t.Join());
+        
         //TODO: 1a) make 3 vendors sell 10M tickets each
         // 1b) 3 vendors sell tickets in parallel
         // 2) Modify Ticket class to be able to judge a winner level
