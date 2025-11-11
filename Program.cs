@@ -23,6 +23,37 @@ class Ticket
         }
         PowerBall = Random.Shared.Next(1, 27);
     }
+
+    public int GetTicketWinnings(LotteryPeriod period)
+    {
+        List<int> sharedNumbers = RegTickets.Union(period.WinningTicket.RegTickets).ToList();
+        bool powerBallSame = PowerBall == period.WinningTicket.PowerBall;
+
+        if (powerBallSame)
+        {
+            switch (sharedNumbers.Count())
+            {
+                case 0: return 4;
+                case 1: return 4;
+                case 2: return 7;
+                case 3: return 100;
+                case 4: return 50_000;
+                case 5: return 100_000_000;
+                default: return 0;
+            }
+
+        }
+        else
+        {
+            switch (sharedNumbers.Count())
+            {
+                case 3: return 7;
+                case 4: return 100;
+                case 5: return 1_000_000;
+                default: return 0;
+            }
+        }
+    }
 }
 class LotteryPeriod
 {
@@ -60,10 +91,22 @@ class Program
     {
         Console.WriteLine("Hello, Lets sell 1Million Tickets!");
         LotteryPeriod period = new LotteryPeriod();
-        LotteryVendor vendor = new LotteryVendor();
-        vendor.SellTickets(period, 1_000_000);
+        LotteryVendor vendor1 = new LotteryVendor();
+        LotteryVendor vendor2 = new LotteryVendor();
+        LotteryVendor vendor3 = new LotteryVendor();
         Console.WriteLine("SOLD 1Million Tickets!");
 
+        var thread1 = new Thread(() => { LotteryVendor vendor = new(); vendor.SellTickets(period, 10_000_000);});
+        var thread2 = new Thread(() => { LotteryVendor vendor = new(); vendor.SellTickets(period, 10_000_000);});
+        var thread3 = new Thread(() => { LotteryVendor vendor = new(); vendor.SellTickets(period, 10_000_000); });
+
+        thread1.Start();
+        thread2.Start();
+        thread3.Start();
+
+        thread1.Join();
+        thread2.Join();
+        thread3.Join();
         //TODO: 1a) make 3 vendors sell 10M tickets each
         // 1b) 3 vendors sell tickets in parallel
         // 2) Modify Ticket class to be able to judge a winner level
@@ -71,4 +114,5 @@ class Program
         // 4) Print out the statistics
         // AFTER 1-4 is working, try to do (GatherStatistics) with Parallel Programming
     }
+
 }
