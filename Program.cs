@@ -59,13 +59,13 @@ class LotteryPeriod
 {
     public Ticket WinningTicket { get; set; }
     public List<Ticket> SoldTickets { get; set; } = new List<Ticket>();
-    public int TotalNumbOfZeroDollarTickets {get {return CountTicketsOfValue(0);}}
-    public int TotalNumbOfFourDollarTickets {get {return CountTicketsOfValue(4);}}
-    public int TotalNumbOfSevenDollarTickets {get {return CountTicketsOfValue(7);}}
-    public int TotalNumbOfHundredDollarTickets {get {return CountTicketsOfValue(100);}}
-    public int TotalNumbOfFiftyKTickets {get {return CountTicketsOfValue(50_000);}}
-    public int TotalNumbOfOneMilTickets {get {return CountTicketsOfValue(1_000_000);}}
-    public int TotalNumbOfJackpotTickets {get {return CountTicketsOfValue(2_000_000);}}
+    public int TotalNumbOfZeroDollarTickets { get { return CountTicketsOfValue(0); } }
+    public int TotalNumbOfFourDollarTickets { get { return CountTicketsOfValue(4); } }
+    public int TotalNumbOfSevenDollarTickets { get { return CountTicketsOfValue(7); } }
+    public int TotalNumbOfHundredDollarTickets { get { return CountTicketsOfValue(100); } }
+    public int TotalNumbOfFiftyKTickets { get { return CountTicketsOfValue(50_000); } }
+    public int TotalNumbOfOneMilTickets { get { return CountTicketsOfValue(1_000_000); } }
+    public int TotalNumbOfJackpotTickets { get { return CountTicketsOfValue(2_000_000); } }
 
     public LotteryPeriod()
     {
@@ -99,19 +99,29 @@ class LotteryVendor
 }
 class Program
 {
+    public static object x = new(); // locking object
+
+    public static void SellTicketsWithNewVendor(LotteryPeriod period, int quantity)
+    {
+        LotteryVendor vendor = new();
+            lock (x)
+            {
+                vendor.SellTickets(period, 1000000);
+            }
+    }
 
     static void Main(string[] args)
     {
-        Console.WriteLine("Hello, Lets sell 1Million Tickets!");
         LotteryPeriod period = new LotteryPeriod();
+        Console.WriteLine("Hello, Lets sell 1Million Tickets!");
         LotteryVendor vendor1 = new LotteryVendor();
         LotteryVendor vendor2 = new LotteryVendor();
         LotteryVendor vendor3 = new LotteryVendor();
         Console.WriteLine("SOLD 1Million Tickets!");
 
-        var thread1 = new Thread(() => { LotteryVendor vendor = new(); vendor.SellTickets(period, 10_000_000);});
-        var thread2 = new Thread(() => { LotteryVendor vendor = new(); vendor.SellTickets(period, 10_000_000);});
-        var thread3 = new Thread(() => { LotteryVendor vendor = new(); vendor.SellTickets(period, 10_000_000); });
+        var thread1 = new Thread(() => SellTicketsWithNewVendor(period, 1000000));
+        var thread2 = new Thread(() => SellTicketsWithNewVendor(period, 1000000));
+        var thread3 = new Thread(() => SellTicketsWithNewVendor(period, 1000000));
 
         thread1.Start();
         thread2.Start();
