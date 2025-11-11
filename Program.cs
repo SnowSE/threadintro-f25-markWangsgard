@@ -38,7 +38,7 @@ class Ticket
                 case 2: return 7;
                 case 3: return 100;
                 case 4: return 50_000;
-                case 5: return 100_000_000;
+                case 5: return 2_000_000;
                 default: return 0;
             }
 
@@ -59,6 +59,14 @@ class LotteryPeriod
 {
     public Ticket WinningTicket { get; set; }
     public List<Ticket> SoldTickets { get; set; } = new List<Ticket>();
+    public int TotalNumbOfZeroDollarTickets {get {return CountTicketsOfValue(0);}}
+    public int TotalNumbOfFourDollarTickets {get {return CountTicketsOfValue(4);}}
+    public int TotalNumbOfSevenDollarTickets {get {return CountTicketsOfValue(7);}}
+    public int TotalNumbOfHundredDollarTickets {get {return CountTicketsOfValue(100);}}
+    public int TotalNumbOfFiftyKTickets {get {return CountTicketsOfValue(50_000);}}
+    public int TotalNumbOfOneMilTickets {get {return CountTicketsOfValue(1_000_000);}}
+    public int TotalNumbOfJackpotTickets {get {return CountTicketsOfValue(2_000_000);}}
+
     public LotteryPeriod()
     {
         int[] numbers = new int[5] { 1, 2, 3, 4, 5 };
@@ -68,6 +76,11 @@ class LotteryPeriod
     public void SetWinningTicket(int[] numbers, int powerBall)
     {
         WinningTicket = new Ticket(numbers, powerBall);
+    }
+
+    private int CountTicketsOfValue(int value)
+    {
+        return SoldTickets.Where(t => t.GetTicketWinnings(this) == value).Count();
     }
 }
 class LotteryVendor
@@ -107,6 +120,14 @@ class Program
         thread1.Join();
         thread2.Join();
         thread3.Join();
+
+        Console.WriteLine($"# of $0 Winners: {period.TotalNumbOfZeroDollarTickets}");
+        Console.WriteLine($"# of $4 Winners: {period.TotalNumbOfFourDollarTickets}");
+        Console.WriteLine($"# of $7 Winners: {period.TotalNumbOfSevenDollarTickets}");
+        Console.WriteLine($"# of $100 Winners: {period.TotalNumbOfHundredDollarTickets}");
+        Console.WriteLine($"# of $50,000 Winners: {period.TotalNumbOfFiftyKTickets}");
+        Console.WriteLine($"# of $1,000,000 Winners: {period.TotalNumbOfOneMilTickets}");
+        Console.WriteLine($"# of Jackpot Winners: {period.TotalNumbOfJackpotTickets}");
         //TODO: 1a) make 3 vendors sell 10M tickets each
         // 1b) 3 vendors sell tickets in parallel
         // 2) Modify Ticket class to be able to judge a winner level
